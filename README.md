@@ -1,8 +1,18 @@
 # agent_skills
 
-This repo contains the `component-specs-prep` Codex skill. It helps you prepare, structure, and validate a component/service “spec pack” so it’s ready for architecture/technical design and **epic-level decomposition**. The skill provides a recommended docs scaffold, a readiness checklist, and a workflow that keeps specs iterated cleanly (including inbox triage rules and a changelog discipline).
+This repo contains Codex skills.
 
-The main outcomes are: a consistent docs tree for a component (`docs-<component-key>/`), clear open questions, an epic-oriented `plan_wbs.md`, and a checklist-driven definition of “ready to decompose”.
+## Skills
+
+### `component-specs-prep`
+
+Prepares, structures, and validates a component/service “spec pack” so it’s ready for architecture/technical design and **epic-level decomposition**. It provides a recommended docs scaffold, a readiness checklist, and a workflow that keeps specs iterated cleanly (including inbox triage rules and a changelog discipline).
+
+Main outcomes: a consistent docs tree for a component (`docs-<component-key>/`), clear open questions, an epic-oriented `plan_wbs.md`, and a checklist-driven definition of “ready to decompose”.
+
+### `gcp-functions-gen2-python-deploy`
+
+Deploys and updates Python projects on **Google Cloud Functions (2nd gen / Cloud Run Functions gen2)**. It supports first-time bootstrap (APIs/IAM/trigger wiring), safe update deploys that preserve existing config, and optional cloud functional/integration verification using Cloud Logging.
 
 ## How to connect to Codex
 
@@ -11,14 +21,15 @@ Install the skill folder into your Codex skills directory (most setups use `~/.c
 ```bash
 mkdir -p ~/.codex/skills
 cp -R component-specs-prep ~/.codex/skills/component-specs-prep
+cp -R gcp-functions-gen2-python-deploy ~/.codex/skills/gcp-functions-gen2-python-deploy
 ```
 
-If your environment uses `CODEX_HOME`, install under `$CODEX_HOME/skills/component-specs-prep` instead.
+If your environment uses `CODEX_HOME`, install under `$CODEX_HOME/skills/<skill-name>` instead.
 
 ## How to use
 
-1. In your Codex prompt, explicitly ask to use the skill (name it as `component-specs-prep`).
-2. Provide the component key (kebab-case) and any existing docs/notes you have; the skill will guide you through structuring and checklist validation.
+1. In your Codex prompt, explicitly ask to use the skill (e.g., `component-specs-prep` or `gcp-functions-gen2-python-deploy`).
+2. For `component-specs-prep`: provide the component key (kebab-case) and any existing docs/notes; the skill guides structuring and checklist validation.
 3. To scaffold a new docs pack, run:
 
 ```bash
@@ -26,4 +37,4 @@ python3 ~/.codex/skills/component-specs-prep/scripts/init_component_docs.py --co
 ```
 
 4. Keep epic increments in `docs-<component-key>/plan_wbs.md` (value + acceptance), keep open questions in `docs-<component-key>/questions/open_questions.md`, and triage `docs-<component-key>/inbox/` as append-only raw artifacts (no links from the main spec pack back to inbox items).
-
+5. For `gcp-functions-gen2-python-deploy`: provide the “Deploy request block” described in `gcp-functions-gen2-python-deploy/references/cloud_run_functions_gen2_deploy_first_try.md`.
