@@ -1,0 +1,38 @@
+# Default READ ignore patterns (glob syntax).
+# Notes:
+# - These patterns apply to READING ONLY.
+# - Writing `questions/arch_spikes.md` is still required.
+**/.git/**
+**/.idea/**
+**/.vscode/**
+**/__pycache__/**
+**/*.pyc
+**/.pytest_cache/**
+**/.mypy_cache/**
+**/.ruff_cache/**
+**/.venv/**
+**/venv/**
+**/node_modules/**
+**/dist/**
+**/build/**
+**/.eggs/**
+**/*.egg-info/**
+**/.terraform/**
+**/.tox/**
+**/coverage/**
+**/*.zip
+**/*.tar
+**/*.gz
+**/*.bin
+**/*.exe
+**/*.dmg
+**/*.so
+**/*.dll
+**/*.pyd
+**/.env
+**/.env.*
+**/*secret*
+**/*credential*
+**/*private_key*
+**/questions/**
+
