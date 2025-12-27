@@ -13,6 +13,8 @@ This skill assumes the spec pack must cover both:
 - **System integration**: contracts and interactions with other services / external systems.
 - **Service details**: behavior, domain model, errors/retries, observability, deploy/runbook basics.
 
+If the request includes logging / observability details, the output must include a **fully specified logging contract** (not just headings): backend + format, required vs recommended fields, required vs optional events, JSON examples for key events, mapping events to the execution flow, and explicit security/privacy rules. Use the structure in `assets/docs-component-template/spec/observability.md`.
+
 ## Quick start (what to do first)
 
 1. Decide the mode: **Greenfield** (new docs) vs **Existing docs** (migration + cleanup).
