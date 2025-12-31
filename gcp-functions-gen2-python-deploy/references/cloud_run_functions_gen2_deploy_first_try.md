@@ -388,6 +388,11 @@ Recommended event type:
 Alternatives:
 - `.written` (created/updated/deleted) — use only if you intentionally want those events.
 
+Note about `pubsubTopic` (common confusion):
+- For Firestore (Eventarc) triggers, `gcloud functions describe ...` may show an internal `pubsubTopic` under `eventTrigger`.
+- This is expected: Eventarc uses **Pub/Sub as a transport layer**.
+- Do **not** attempt to manually edit/delete this topic unless troubleshooting explicit delivery errors with clear evidence.
+
 Deploy:
 
 ```bash
@@ -583,6 +588,10 @@ Agent must reuse (unless human explicitly requests changes):
 - secrets mapping: `serviceConfig.secretEnvironmentVariables`
 - trigger config: `eventTrigger` (if present)
 
+Important (common confusion):
+- Secrets configured via `--set-secrets` show up under `serviceConfig.secretEnvironmentVariables` (not `serviceConfig.environmentVariables`).
+- When verifying whether secrets “applied”, inspect `serviceConfig.secretEnvironmentVariables` explicitly.
+
 ### 5.2 Derive `ENTRY_POINT` again (agent step)
 
 Always re-derive entry point from code (Section 4.3). Do not assume it stayed the same.
@@ -633,6 +642,20 @@ Smoke verification must only be executed if `APPROVE_SMOKE_VERIFY=true`.
 
 If not approved, stop after deploy confirmation.
 
+### 6.0 Record deployed revision before testing (required)
+
+Before any smoke action, record the currently deployed revision (to avoid running against a stale deploy):
+
+```bash
+gcloud functions describe "${FUNCTION_NAME}" \
+  --gen2 \
+  --project "${PROJECT_ID}" \
+  --region "${REGION}" \
+  --format="value(serviceConfig.revision,updateTime)"
+```
+
+Include these values in any smoke report / troubleshooting notes.
+
 ### 6.1 Cloud Logging transport (what exists by default)
 
 See [cloud_logging.md](cloud_logging.md)
@@ -654,6 +677,29 @@ Human must provide:
 - a minimal JSON document that should trigger processing
 - which field to update to “poke” it (update) and trigger the event
 - expected outcomes (which fields should change; which artifacts should appear)
+
+#### 6.3.1 (Optional) “Safe smoke” protocol for Firestore-triggered functions (patch + cleanup)
+
+Goal: make smoke verification repeatable without inventing unknown-schema documents.
+
+Prereqs (human input):
+- A concrete existing document to patch (e.g. `flow_runs/{runId}`) with known schema.
+- A minimal “poke” operation that is safe in the project (e.g. `debug.lastPing=<timestamp>` or a controlled transition of a step to READY).
+- A cleanup plan: which fields to revert and what “original” snapshot to restore.
+
+Guardrails:
+- Run only if `APPROVE_SMOKE_VERIFY=true`.
+- Do **not** create new documents with unknown schema.
+- Prefer a reversible patch on an existing document; always restore the previous state.
+
+Steps (agent procedure):
+1) Capture “before” snapshot (human-approved): the exact fields you will change and their current values.
+2) Apply a minimal PATCH/update (“poke”).
+3) Wait for expected state change (or for a bounded time) and collect:
+   - Cloud Logging evidence (queries in [cloud_logging.md](cloud_logging.md))
+   - any expected artifacts (GCS objects, Firestore status fields)
+4) Cleanup: revert patched fields to the “before” snapshot.
+5) Re-check logs for the corresponding revision (Section 6.0).
 
 ### 6.4 Paid API quota safety
 
@@ -860,6 +906,26 @@ gcloud pubsub topics get-iam-policy "<TOPIC_NAME_OR_FULL_PATH>" --project "${PRO
 Important:
 - See [cloud_logging.md](cloud_logging.md)
 - If the org disallows topic IAM changes, human-in-the-middle is required.
+
+### 8.10 Runtime Firestore error: 404 “The database (default) does not exist”
+
+Symptom (example):
+- `google.api_core.exceptions.NotFound: 404 The database (default) does not exist for project ...`
+
+Meaning:
+- The function code is trying to read/write Firestore against database ID `(default)`, but the project uses a **non-default** Firestore database (or `(default)` was never created).
+
+Checks / fixes:
+1) Confirm which Firestore database IDs exist:
+```bash
+gcloud firestore databases list --project "${PROJECT_ID}" --format="table(name,locationId,type)"
+```
+2) Ensure your application explicitly targets the intended Firestore database ID (often non-default, e.g. `my-db-europe-west4`).
+3) Verify runtime env contains `FIRESTORE_DB=<your-db-id>` (and that the app uses it when building the Firestore client).
+4) Verify nothing in code assumes `(default)` implicitly.
+
+Why this is tricky:
+- The trigger can be configured correctly (Eventarc filters) while the runtime fails inside the handler during Firestore fetches.
 
 ---
 

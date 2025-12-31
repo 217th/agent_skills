@@ -43,3 +43,5 @@ Rules:
 - Treat trigger changes as behavior-changing and potentially destructive; require explicit confirmation (playbook Section 5.3).
 - Do not introduce broad IAM roles if the used services are unknown; require `USED_GCP_SERVICES` or ask the human.
 - Avoid keys; prefer service account impersonation for verification where possible (playbook Section 4.6.4).
+- When validating secrets configuration, verify `serviceConfig.secretEnvironmentVariables` (not just `serviceConfig.environmentVariables`) (playbook Section 5.1).
+- Before running any smoke verification, record the deployed revision/update time and include it in the smoke report (playbook Section 6.0).
