@@ -1,6 +1,6 @@
 # Google Cloud Run Functions (gen2) — Deploy “First Try” Playbook (Universal)
 
-This is a **single-file**, **English**, **high-detail**, **unambiguous** instruction intended to be followed by an agent (or a human acting as the agent) to deploy a Python service to **Google Cloud Run Functions (gen2)** with minimal retries.
+This is an **English**, **high-detail**, **unambiguous** instruction intended to be followed by an agent (or a human acting as the agent) to deploy a Python service to **Google Cloud Run Functions (gen2)** with minimal retries.
 
 It explicitly supports two situations:
 
@@ -302,9 +302,7 @@ Use the smallest roles that satisfy required actions:
   - stricter: bucket-level `roles/storage.objectCreator` + `roles/storage.objectViewer` (only if compatible with your code)
 - Secret Manager **read secret values**:
   - secret-level `roles/secretmanager.secretAccessor`
-- Cloud Logging:
-  - Cloud Run Functions automatically ships stdout/stderr to Cloud Logging; no IAM role is usually needed for that.
-  - Only grant `roles/logging.logWriter` if your code calls Cloud Logging API directly.
+- Cloud Logging: see [cloud_logging.md](cloud_logging.md)
 
 #### 4.6.2 Eventarc roles (only for TRIGGER_KIND=firestore or TRIGGER_KIND=eventarc_storage)
 
@@ -531,7 +529,7 @@ In some projects, Eventarc may deliver events using the **Eventarc service agent
 
 `service-${PROJECT_NUMBER}@gcp-sa-eventarc.iam.gserviceaccount.com`
 
-If your logs show Eventarc delivery attempts but the Cloud Run request log reports `403`, grant invoker to the delivery identity.
+Evidence from logs (403 delivery): see [cloud_logging.md](cloud_logging.md)
 
 Agent steps:
 1) Get project number:
@@ -551,8 +549,7 @@ gcloud run services add-iam-policy-binding "${FUNCTION_NAME}" \
   --role="roles/run.invoker"
 ```
 
-Human-in-the-middle:
-- Only apply this if there is evidence (403 delivery) and you can identify the actual caller identity from logs/trigger config.
+Human-in-the-middle: see [cloud_logging.md](cloud_logging.md)
 
 ### 4.10 Confirm deploy status
 
@@ -638,35 +635,15 @@ If not approved, stop after deploy confirmation.
 
 ### 6.1 Cloud Logging transport (what exists by default)
 
-Cloud Run Functions gen2 automatically ships `stdout`/`stderr` to Cloud Logging.
-
-If the application prints **JSON per line**, Cloud Logging typically renders it under `jsonPayload`.
-If the application prints plain text, it appears under `textPayload`.
+See [cloud_logging.md](cloud_logging.md)
 
 #### 6.1.1 Gen2 log resource type (common confusion)
 
-For Cloud Run Functions gen2, application logs commonly appear under:
-- `resource.type="cloud_run_revision"`
-- `resource.labels.service_name="<function_name>"`
-
-Quick query template:
-
-```bash
-gcloud logging read \
-  'resource.type="cloud_run_revision"
-   resource.labels.service_name="'"${FUNCTION_NAME}"'"' \
-  --project "${PROJECT_ID}" \
-  --limit 50 \
-  --freshness 30m
-```
+See [cloud_logging.md](cloud_logging.md)
 
 ### 6.2 Logs and event names differ by component and step types
 
-Different components (and even different step types in the same component) can emit different log events.
-
-Therefore:
-- The agent must not assume the presence of specific event names.
-- The agent must first scan code for event naming conventions (e.g., look for a stable `event` key).
+See [cloud_logging.md](cloud_logging.md)
 
 ### 6.3 Firestore-triggered smoke is human-driven by default
 
@@ -799,7 +776,7 @@ Possible causes:
 - for Firestore CloudEvents, the event payload may omit the document body (`data` may be empty/None); if your handler relies only on `data`, it may incorrectly treat the event as “filtered”. Prefer extracting the document path (or `runId`) from the CloudEvent subject and fetching the document from Firestore.
 
 Human-in-the-middle:
-- provide the event ID and the function logs around that time.
+- see [cloud_logging.md](cloud_logging.md)
 
 ### 8.6 `gcloud functions deploy` crashes (agent environment instability)
 
@@ -876,13 +853,12 @@ gcloud functions describe "${FUNCTION_NAME}" --gen2 --project "${PROJECT_ID}" --
 ```bash
 gcloud pubsub topics get-iam-policy "<TOPIC_NAME_OR_FULL_PATH>" --project "${PROJECT_ID}"
 ```
-3) Identify the actual failing principal from audit logs (preferred). If you cannot, a common identity for Cloud Storage notifications is:
-`service-${PROJECT_NUMBER}@gs-project-accounts.iam.gserviceaccount.com`
+3) See [cloud_logging.md](cloud_logging.md)
 
 4) Grant `roles/pubsub.publisher` to the principal on that topic (only if evidence shows this is the root cause).
 
 Important:
-- Do not apply this blindly. Always confirm the principal from logs/audit logs when possible.
+- See [cloud_logging.md](cloud_logging.md)
 - If the org disallows topic IAM changes, human-in-the-middle is required.
 
 ---

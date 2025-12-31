@@ -10,7 +10,10 @@ Use this skill to deploy a Python project to **Google Cloud Functions (2nd gen)*
 ## Source of truth (must use)
 
 The canonical procedure is the bundled playbook:
-- `references/cloud_run_functions_gen2_deploy_first_try.md`
+- [references/cloud_run_functions_gen2_deploy_first_try.md](references/cloud_run_functions_gen2_deploy_first_try.md)
+
+Cloud Logging reference (log queries + interpretation):
+- [references/cloud_logging.md](references/cloud_logging.md)
 
 When executing a deploy, follow the playbook steps **verbatim**. Do not “summarize from memory” or silently skip steps.
 
@@ -31,7 +34,7 @@ Rules:
    - First-time deploy: playbook Section 4 (bootstrap + validations).
    - Update deploy: playbook Section 5 (minimal changes; preserve existing config).
 3. If functional/integration verification in cloud is requested and explicitly approved:
-   - Use playbook Section 6 (Cloud Logging queries + optional smoke verification).
+   - Use playbook Section 6 (optional smoke verification) and [references/cloud_logging.md](references/cloud_logging.md) (Cloud Logging queries + interpretation).
 4. If deploy fails:
    - Use playbook Section 8 (troubleshooting). Stop and ask for confirmation before destructive actions.
 
@@ -40,4 +43,3 @@ Rules:
 - Treat trigger changes as behavior-changing and potentially destructive; require explicit confirmation (playbook Section 5.3).
 - Do not introduce broad IAM roles if the used services are unknown; require `USED_GCP_SERVICES` or ask the human.
 - Avoid keys; prefer service account impersonation for verification where possible (playbook Section 4.6.4).
-
